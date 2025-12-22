@@ -3,129 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>青苗琴行 - 活動相片列印系統</title>
-    <meta name="theme-color" content="#25D366">
+    <title>青苗琴行 - 雲端相片列印系統</title>
+    <meta name="theme-color" content="#1a1a1a">
 
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Microsoft JhengHei", Roboto, sans-serif;
-            background-color: #f0f2f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #121212; /* 極致黑 */
             display: flex; flex-direction: column; align-items: center;
-            padding: 15px; margin: 0; color: #333;
+            padding: 20px; margin: 0; color: #fff;
             padding-bottom: 160px;
             user-select: none;
         }
         
-        h2 { color: #075e54; margin: 15px 0 20px 0; font-size: 1.3rem; text-align: center; font-weight: 700; letter-spacing: 1px;}
+        /* 標題帶有科技感光暈 */
+        h2 { 
+            color: #fff; margin: 15px 0 25px 0; font-size: 1.2rem; 
+            text-align: center; font-weight: 300; letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
 
-        /* 切換區 */
+        /* 切換區 - 深灰風格 */
         .toggle-container {
-            display: flex; background: #e9edef; border-radius: 25px; padding: 4px;
-            margin-bottom: 10px; width: 100%; max-width: 350px;
+            display: flex; background: #2c2c2c; border-radius: 50px; padding: 4px;
+            margin-bottom: 20px; width: 100%; max-width: 320px;
+            border: 1px solid #333;
         }
         .toggle-btn {
-            flex: 1; padding: 10px; border-radius: 20px; border: none; background: transparent;
-            font-weight: bold; color: #666; cursor: pointer; transition: 0.2s;
+            flex: 1; padding: 12px; border-radius: 40px; border: none; background: transparent;
+            font-weight: bold; color: #888; cursor: pointer; transition: 0.3s;
         }
-        .toggle-btn.active { background: #fff; color: #075e54; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .toggle-btn.active { background: #444; color: #4caf50; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 
-        /* 功能按鈕區 */
-        .top-actions {
-            display: flex; gap: 10px; width: 100%; max-width: 350px; margin-bottom: 20px;
-        }
+        /* 功能按鈕 - 簡約線條 */
+        .top-actions { display: flex; gap: 15px; width: 100%; max-width: 350px; margin-bottom: 25px; }
         .action-btn {
-            flex: 1; padding: 12px; border-radius: 12px; border: none;
-            font-weight: bold; font-size: 0.95rem; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.1s;
+            flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #444;
+            font-weight: 500; font-size: 0.9rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            background: #1e1e1e; color: #ccc; transition: 0.2s;
         }
-        .btn-upload { background: #dcf8c6; color: #075e54; border: 1px solid #25D366; }
-        .btn-frame { background: #fff; color: #555; border: 1px solid #ccc; }
-        .action-btn:active { transform: scale(0.97); }
-        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .action-btn:active { background: #333; border-color: #4caf50; }
+        .action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* 畫布區域 */
+        /* 畫布 - 模擬螢幕發光 */
         .canvas-wrapper {
             position: relative; margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 4px solid #fff; background: #ddd;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            border: 1px solid #333; background: #222;
             display: flex; justify-content: center; align-items: center;
-            border-radius: 4px;
-            overflow: hidden;
-            touch-action: pan-y; 
+            border-radius: 8px; overflow: hidden; touch-action: pan-y; 
         }
         canvas {
             max-width: 85vw; max-height: 50vh;
             width: auto !important; height: auto !important;
-            background: white; 
+            background: #fff; 
         }
 
-        /* 底部固定按鈕區 */
+        /* 底部操作區 */
         .fixed-footer {
             position: fixed; bottom: 0; left: 0; width: 100%;
-            background: white; padding: 15px 20px 30px 20px;
-            box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
-            display: flex; flex-direction: column; align-items: center; gap: 15px;
-            z-index: 99;
+            background: #1a1a1a; padding: 20px 20px 40px 20px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.7);
+            display: flex; flex-direction: column; align-items: center; gap: 20px;
+            z-index: 99; border-top: 1px solid #333;
         }
         
-        .zoom-container {
-            width: 100%; max-width: 400px;
-            display: flex; align-items: center; gap: 15px; padding: 0 10px;
-        }
-        .zoom-icon { font-size: 1.2rem; color: #555; }
-        input[type=range] { flex: 1; accent-color: #25D366; height: 6px; cursor: pointer; }
+        .zoom-container { width: 100%; max-width: 350px; display: flex; align-items: center; gap: 15px; padding: 0 10px; }
+        .zoom-icon { font-size: 1rem; color: #666; }
+        input[type=range] { flex: 1; accent-color: #4caf50; height: 4px; cursor: pointer; background: #333; }
 
-        .btn-whatsapp {
-            background-color: #25D366; color: white; border: none;
-            padding: 15px 30px; border-radius: 30px; font-size: 1.1rem; font-weight: bold;
-            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4); cursor: pointer;
+        /* 主按鈕 - 科技綠漸層 */
+        .btn-submit {
+            background: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
+            color: white; border: none;
+            padding: 16px 30px; border-radius: 50px; font-size: 1.1rem; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.4); cursor: pointer;
             width: 100%; max-width: 400px; display: flex; align-items: center; justify-content: center; gap: 10px;
+            letter-spacing: 1px; transition: transform 0.1s;
         }
-        .btn-whatsapp:active { transform: scale(0.98); }
+        .btn-submit:active { transform: scale(0.98); opacity: 0.9; }
 
-        /* Modal */
+        /* ================= 系統模擬元素 ================= */
+        
+        /* 全螢幕遮罩 (系統處理中) */
+        .system-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92); z-index: 3000;
+            flex-direction: column; justify-content: center; align-items: center;
+            color: #4caf50; font-family: monospace;
+        }
+        
+        /* 進度條 */
+        .progress-container {
+            width: 80%; max-width: 300px; height: 4px; background: #333;
+            border-radius: 2px; margin: 20px 0; overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%; width: 0%; background: #4caf50;
+            transition: width 0.2s; box-shadow: 0 0 10px #4caf50;
+        }
+        
+        .log-text { font-size: 0.9rem; color: #aaa; margin-top: 10px; min-height: 1.2em; }
+        .blink { animation: blinker 1s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+
+        /* 相框 Modal - 深色版 */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px;
+            background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; padding: 20px;
         }
         .modal-box {
-            background: white; padding: 20px; border-radius: 16px; width: 100%; max-width: 360px;
-            max-height: 90vh; overflow-y: auto; text-align: center;
-            display: flex; flex-direction: column; align-items: center;
+            background: #222; border: 1px solid #444; padding: 20px; border-radius: 16px; 
+            width: 100%; max-width: 360px; max-height: 80vh; overflow-y: auto; text-align: center; color: #fff;
         }
-        
         .frame-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
-        .frame-opt img { width: 100%; border: 2px solid #eee; border-radius: 5px; }
+        .frame-opt img { width: 100%; border: 2px solid #444; border-radius: 5px; }
 
-        /* 預覽與長按區 */
+        /* 儲存提示 Modal */
         .save-hint-img { 
-            width: 100%; max-width: 220px; border: 3px solid #25D366; border-radius: 8px;
-            margin: 10px 0; display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            /* 重要：禁止在預覽圖上發生觸控捲動，方便長按 */
-            touch-action: none; 
-            -webkit-user-select: none; /* iOS Safari 特性，有時需避免選取 */
-        }
-        .step-bubble {
-            background: #e8f5e9; color: #075e54; padding: 8px 15px; border-radius: 20px;
-            font-size: 0.9rem; margin-bottom: 5px; font-weight: bold; display: inline-block;
+            width: 60%; border: 2px solid #4caf50; border-radius: 8px;
+            margin: 15px 0; display: block; box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+            touch-action: none; -webkit-user-select: none;
         }
         
-        /* 系統處理中 Toast */
-        .status-toast {
-            display: none; position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9); color: white; padding: 25px; border-radius: 12px;
-            z-index: 2000; text-align: center; font-weight: bold; width: 85%; max-width: 320px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-family: monospace;
-        }
-
         #fileInput { display: none; }
     </style>
 </head>
 <body>
 
-    <h2>青苗琴行 - 活動相片列印系統</h2>
+    <h2>青苗琴行 - 雲端相片列印系統</h2>
 
     <div class="toggle-container">
         <button class="toggle-btn active" id="btn-v" onclick="setOrientation('V')">直向</button>
@@ -133,11 +141,11 @@
     </div>
 
     <div class="top-actions">
-        <button class="action-btn btn-upload" onclick="document.getElementById('fileInput').click()">
-            <span>📷</span> 上傳照片
+        <button class="action-btn" onclick="document.getElementById('fileInput').click()">
+            <span>📷</span> 載入照片
         </button>
-        <button id="btnOpenFrame" class="action-btn btn-frame" onclick="openFrameModal()" disabled>
-            <span>🖼️</span> 選擇相框
+        <button id="btnOpenFrame" class="action-btn" onclick="openFrameModal()" disabled>
+            <span>🖼️</span> 套用相框
         </button>
     </div>
 
@@ -154,46 +162,48 @@
             <span class="zoom-icon">➕</span>
         </div>
 
-        <button class="btn-whatsapp" id="btnProcess" onclick="processImage()">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            傳送給系統 (WhatsApp)
+        <button class="btn-submit" onclick="simulateSystemUpload()">
+            <span>🖨️</span> 上傳至列印隊列
         </button>
     </div>
 
-    <div id="statusToast" class="status-toast">
-        <div style="font-size:30px; margin-bottom:15px;">⚙️</div>
-        <div id="toastText">系統處理中...</div>
-    </div>
-
-    <div id="frameModal" class="modal-overlay">
-        <div class="modal-box">
-            <h3 id="frameTitle">選擇相框</h3>
-            <div id="frameList" class="frame-grid"></div>
-            <button style="margin-top:15px; padding:10px; width:100%; border:none; background:#eee; border-radius:8px;" onclick="closeModal('frameModal')">取消</button>
+    <div id="systemOverlay" class="system-overlay">
+        <div style="font-size: 3rem; margin-bottom: 20px;">☁️</div>
+        <div style="font-size: 1.2rem; font-weight: bold; color: #fff;">正在處理影像...</div>
+        
+        <div class="progress-container">
+            <div id="progressBar" class="progress-bar"></div>
         </div>
+        
+        <div id="logText" class="log-text">Initializing...</div>
     </div>
 
     <div id="saveModal" class="modal-overlay" style="z-index: 2500;">
-        <div class="modal-box preview-box">
-            <h3 style="color:#075e54; margin: 0 0 10px 0;">📸 請先儲存圖片</h3>
+        <div class="modal-box" style="display:flex; flex-direction:column; align-items:center;">
+            <h3 style="color:#4caf50; margin: 0 0 10px 0;">✅ 影像處理完成</h3>
             
-            <div style="text-align:left; width:100%; margin-bottom:10px;">
-                <div class="step-bubble">步驟 1</div>
-                <span style="font-size:0.9rem;">長按下方圖片，選擇<strong>「儲存到相片」</strong></span>
+            <p style="font-size:0.9rem; color:#aaa; margin:5px 0;">為了驗證您的列印權限，請執行以下步驟：</p>
+
+            <div style="background:#333; padding:10px; border-radius:8px; width:100%; text-align:left; margin-top:10px; font-size:0.85rem; line-height:1.6;">
+                <span style="color:#4caf50; font-weight:bold;">步驟 1：</span>長按下方圖片，選擇「儲存到相片」。<br>
+                <span style="color:#4caf50; font-weight:bold;">步驟 2：</span>按下按鈕，在 WhatsApp 貼上圖片。
             </div>
 
             <img id="finalImg" class="save-hint-img" src="">
 
-            <div style="text-align:left; width:100%; margin-top:15px; margin-bottom:5px;">
-                <div class="step-bubble">步驟 2</div>
-                <span style="font-size:0.9rem;">按下按鈕，在 WhatsApp 選取剛才的相片</span>
-            </div>
-
-            <button class="btn-whatsapp" onclick="redirectToWhatsapp()" style="width:100%; font-size:1rem; padding:12px; margin-top:10px;">
-                已儲存，開啟 WhatsApp ➤
+            <button class="btn-submit" onclick="redirectToWhatsapp()" style="width:100%; padding:12px; margin-top:5px; background: #25D366;">
+                開啟 WhatsApp 傳送 ➤
             </button>
             
-            <button style="margin-top:10px; background:none; border:none; text-decoration:underline; color:#888;" onclick="closeModal('saveModal')">返回修改</button>
+            <button style="margin-top:15px; background:none; border:none; text-decoration:underline; color:#666;" onclick="closeModal('saveModal')">取消</button>
+        </div>
+    </div>
+
+    <div id="frameModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="frameTitle" style="margin-top:0;">選擇相框</h3>
+            <div id="frameList" class="frame-grid"></div>
+            <button style="margin-top:15px; padding:10px; width:100%; border:none; background:#444; color:#fff; border-radius:8px;" onclick="closeModal('frameModal')">返回</button>
         </div>
     </div>
 
@@ -327,15 +337,14 @@
                 const finalH = uploadedImg.height * imgState.baseScale * imgState.zoom;
                 ctx.drawImage(uploadedImg, imgState.x, imgState.y, finalW, finalH);
             } else {
-                ctx.fillStyle = '#ddd'; ctx.font = 'bold 150px Arial';
+                ctx.fillStyle = '#111'; ctx.fillRect(0,0,canvas.width, canvas.height);
+                ctx.fillStyle = '#333'; ctx.font = 'bold 150px Arial';
                 ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#aaa';
-                ctx.fillText('點擊上傳', canvas.width/2, canvas.height/2);
+                ctx.fillText('+', canvas.width/2, canvas.height/2);
             }
             if (frameImg) { ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height); }
         }
 
-        // 觸控與縮放
         function getDist(t1, t2) { return Math.sqrt(Math.pow(t1.clientX - t2.clientX, 2) + Math.pow(t1.clientY - t2.clientY, 2)); }
         function getPos(e) { const rect = canvas.getBoundingClientRect(); const scaleX = canvas.width / rect.width; let cx, cy; if(e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; } else { cx = e.clientX; cy = e.clientY; } return { x: (cx - rect.left) * scaleX, clientX: cx, clientY: cy }; }
         canvas.addEventListener('mousedown', e => { if(!isLoaded) return; isDragging=true; const p=getPos(e); dragStart={x:p.clientX, y:p.clientY, originX:imgState.x, originY:imgState.y}; });
@@ -357,7 +366,7 @@
             const currentFrames = FRAME_LIBRARY[orientation] || [];
             currentFrames.forEach(f => {
                 const div = document.createElement('div'); div.className = 'frame-opt';
-                div.innerHTML = f.url ? `<img src="${f.url}">` : `<div style="height:50px;display:flex;align-items:center;justify-content:center;background:#eee;">無</div>`;
+                div.innerHTML = f.url ? `<img src="${f.url}">` : `<div style="height:50px;display:flex;align-items:center;justify-content:center;background:#333;color:#666;">無</div>`;
                 div.onclick = () => {
                     if (f.url) { const img = new Image(); img.crossOrigin = "anonymous"; img.src = f.url; img.onload = () => { frameImg = img; draw(); closeModal('frameModal'); }; } 
                     else { frameImg = null; draw(); closeModal('frameModal'); }
@@ -368,33 +377,63 @@
         }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // ============================================
-        // 核心修改：移除自動下載，改為彈出 Modal 供長按
-        // ============================================
-        function processImage() {
-            if (!isLoaded) { alert("請先上傳照片！"); return; }
+        // ================= 偽裝雲端上傳系統 (核心部分) =================
+        function simulateSystemUpload() {
+            if (!isLoaded) { alert("請先載入照片！"); return; }
             
-            const toast = document.getElementById('statusToast');
-            toast.style.display = 'block';
+            const overlay = document.getElementById('systemOverlay');
+            const bar = document.getElementById('progressBar');
+            const log = document.getElementById('logText');
+            
+            overlay.style.display = 'flex';
+            
+            // 模擬進度條動畫
+            let progress = 0;
+            const steps = [
+                { p: 10, t: "Connecting to Print Server..." },
+                { p: 30, t: "Optimizing Image Resolution..." },
+                { p: 60, t: "Applying Color Correction..." },
+                { p: 80, t: "Queueing Request (ID: 2R-" + Math.floor(Math.random()*1000) + ")..." },
+                { p: 100, t: "Ready for Verification." }
+            ];
 
-            // 1. 生成圖片
+            let stepIndex = 0;
+            
+            const interval = setInterval(() => {
+                if (stepIndex >= steps.length) {
+                    clearInterval(interval);
+                    // 完成後執行真正動作
+                    finalizeImage();
+                    return;
+                }
+                
+                const step = steps[stepIndex];
+                bar.style.width = step.p + "%";
+                log.innerText = step.t;
+                stepIndex++;
+                
+            }, 600); // 每 0.6 秒跑一個步驟，總共約 3 秒
+        }
+
+        function finalizeImage() {
+            const overlay = document.getElementById('systemOverlay');
+            
             canvas.toBlob(function(blob) {
                 const url = URL.createObjectURL(blob);
-                
-                // 2. 設定 Modal 圖片
                 document.getElementById('finalImg').src = url;
                 
-                // 3. 顯示 Modal，隱藏 Loading
-                toast.style.display = 'none';
-                document.getElementById('saveModal').style.display = 'flex';
-                
-                // 注意：這裡完全移除了自動下載 (a.click())
+                // 關閉系統動畫，顯示最後確認視窗
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    document.getElementById('saveModal').style.display = 'flex';
+                }, 500);
                 
             }, 'image/jpeg', 0.95);
         }
 
         function redirectToWhatsapp() {
-            const msg = encodeURIComponent("你好，我想打印 2R 相片 （請家長記得加上剛才的圖檔附件）。");
+            // 專業化的系統訊息
+            const msg = encodeURIComponent("【系統列印請求】\nID: " + Math.floor(Math.random()*10000) + "\n\n你好，我已上傳相片至系統列印隊列。\n（請家長記得在此對話附上剛才儲存的相片）");
             window.location.href = `https://wa.me/${TARGET_PHONE}?text=${msg}`;
         }
 
@@ -402,4 +441,3 @@
     </script>
 </body>
 </html>
-
