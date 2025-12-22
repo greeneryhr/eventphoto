@@ -4,56 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>青苗琴行 - 雲端相片列印系統</title>
-    <meta name="theme-color" content="#1a1a1a">
+    <meta name="theme-color" content="#FFF3E0">
 
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #121212; /* 極致黑 */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", sans-serif;
+            /* 背景維持淺橙色 */
+            background-color: #FFF3E0; 
             display: flex; flex-direction: column; align-items: center;
-            padding: 20px; margin: 0; color: #fff;
-            padding-bottom: 160px;
+            padding: 20px; margin: 0; 
+            color: #4E342E;
+            padding-bottom: 180px; /* 增加底部留白給提示語 */
             user-select: none;
         }
         
-        /* 標題帶有科技感光暈 */
         h2 { 
-            color: #fff; margin: 15px 0 25px 0; font-size: 1.2rem; 
-            text-align: center; font-weight: 300; letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            color: #2E7D32; /* 標題改為深綠色 */
+            margin: 15px 0 25px 0; font-size: 1.3rem; 
+            text-align: center; font-weight: 700; letter-spacing: 1px;
         }
 
-        /* 切換區 - 深灰風格 */
+        /* 切換區 */
         .toggle-container {
-            display: flex; background: #2c2c2c; border-radius: 50px; padding: 4px;
+            display: flex; background: #fff; border-radius: 50px; padding: 4px;
             margin-bottom: 20px; width: 100%; max-width: 320px;
-            border: 1px solid #333;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         .toggle-btn {
             flex: 1; padding: 12px; border-radius: 40px; border: none; background: transparent;
             font-weight: bold; color: #888; cursor: pointer; transition: 0.3s;
         }
-        .toggle-btn.active { background: #444; color: #4caf50; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        /* 修改：激活狀態改回綠色漸層 */
+        .toggle-btn.active { 
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); 
+            color: #fff; box-shadow: 0 2px 5px rgba(37, 211, 102, 0.3); 
+        }
 
-        /* 功能按鈕 - 簡約線條 */
+        /* 功能按鈕 - 修改為綠色邊框和文字 */
         .top-actions { display: flex; gap: 15px; width: 100%; max-width: 350px; margin-bottom: 25px; }
         .action-btn {
-            flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #444;
-            font-weight: 500; font-size: 0.9rem; cursor: pointer;
+            flex: 1; padding: 14px; border-radius: 12px; border: 2px solid #25D366;
+            font-weight: 600; font-size: 0.95rem; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px;
-            background: #1e1e1e; color: #ccc; transition: 0.2s;
+            background: #fff; color: #128C7E; transition: 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        .action-btn:active { background: #333; border-color: #4caf50; }
-        .action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .action-btn:active { background: #E8F5E9; transform: scale(0.98); }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #ddd; color: #aaa; }
 
-        /* 畫布 - 模擬螢幕發光 */
+        /* 畫布 */
         .canvas-wrapper {
-            position: relative; margin-bottom: 20px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            border: 1px solid #333; background: #222;
+            position: relative; margin-bottom: 10px; /* 減少下方邊距給提示語 */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 4px solid #fff; background: #eee;
             display: flex; justify-content: center; align-items: center;
-            border-radius: 8px; overflow: hidden; touch-action: pan-y; 
+            border-radius: 12px; overflow: hidden; touch-action: pan-y; 
         }
         canvas {
             max-width: 85vw; max-height: 50vh;
@@ -61,70 +67,75 @@
             background: #fff; 
         }
 
+        /* 新增：操作提示語樣式 */
+        .canvas-hint {
+            display: none; /* 預設隱藏，載入圖片後顯示 */
+            font-size: 0.85rem; color: #666; margin-bottom: 20px;
+            text-align: center; background: rgba(255,255,255,0.7);
+            padding: 5px 15px; border-radius: 20px;
+        }
+
         /* 底部操作區 */
         .fixed-footer {
             position: fixed; bottom: 0; left: 0; width: 100%;
-            background: #1a1a1a; padding: 20px 20px 40px 20px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.7);
+            background: #fff; padding: 20px 20px 40px 20px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
             display: flex; flex-direction: column; align-items: center; gap: 20px;
-            z-index: 99; border-top: 1px solid #333;
+            z-index: 99; border-top: 1px solid #eee;
         }
         
         .zoom-container { width: 100%; max-width: 350px; display: flex; align-items: center; gap: 15px; padding: 0 10px; }
-        .zoom-icon { font-size: 1rem; color: #666; }
-        input[type=range] { flex: 1; accent-color: #4caf50; height: 4px; cursor: pointer; background: #333; }
+        .zoom-icon { font-size: 1rem; color: #25D366; font-weight: bold; }
+        /* 修改：拉桿顏色改回綠色 */
+        input[type=range] { flex: 1; accent-color: #25D366; height: 6px; cursor: pointer; background: #ddd; border-radius: 3px; }
 
-        /* 主按鈕 - 科技綠漸層 */
+        /* 主按鈕 - 修改為綠色漸層 */
         .btn-submit {
-            background: linear-gradient(90deg, #2e7d32 0%, #4caf50 100%);
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
             color: white; border: none;
             padding: 16px 30px; border-radius: 50px; font-size: 1.1rem; font-weight: bold;
-            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.4); cursor: pointer;
+            box-shadow: 0 6px 15px rgba(37, 211, 102, 0.3); cursor: pointer;
             width: 100%; max-width: 400px; display: flex; align-items: center; justify-content: center; gap: 10px;
             letter-spacing: 1px; transition: transform 0.1s;
         }
         .btn-submit:active { transform: scale(0.98); opacity: 0.9; }
 
-        /* ================= 系統模擬元素 ================= */
-        
-        /* 全螢幕遮罩 (系統處理中) */
+        /* ================= 系統模擬元素 (配合綠色風格) ================= */
         .system-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92); z-index: 3000;
+            background: rgba(255,255,255,0.95); z-index: 3000;
             flex-direction: column; justify-content: center; align-items: center;
-            color: #4caf50; font-family: monospace;
+            color: #128C7E; font-family: monospace; /* 文字改綠色 */
         }
-        
-        /* 進度條 */
         .progress-container {
-            width: 80%; max-width: 300px; height: 4px; background: #333;
-            border-radius: 2px; margin: 20px 0; overflow: hidden;
+            width: 80%; max-width: 300px; height: 6px; background: #C8E6C9;
+            border-radius: 10px; margin: 20px 0; overflow: hidden;
         }
         .progress-bar {
-            height: 100%; width: 0%; background: #4caf50;
-            transition: width 0.2s; box-shadow: 0 0 10px #4caf50;
+            height: 100%; width: 0%; background: #25D366; /* 進度條改綠色 */
+            transition: width 0.2s; box-shadow: 0 0 10px rgba(37, 211, 102, 0.5);
         }
-        
-        .log-text { font-size: 0.9rem; color: #aaa; margin-top: 10px; min-height: 1.2em; }
-        .blink { animation: blinker 1s linear infinite; }
-        @keyframes blinker { 50% { opacity: 0; } }
+        .log-text { font-size: 0.95rem; color: #555; margin-top: 10px; min-height: 1.2em; font-weight: bold; }
 
-        /* 相框 Modal - 深色版 */
+        /* Modal */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; padding: 20px;
+            background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px;
         }
         .modal-box {
-            background: #222; border: 1px solid #444; padding: 20px; border-radius: 16px; 
-            width: 100%; max-width: 360px; max-height: 80vh; overflow-y: auto; text-align: center; color: #fff;
+            background: #fff; padding: 25px; border-radius: 20px; 
+            width: 100%; max-width: 360px; max-height: 80vh; overflow-y: auto; text-align: center; color: #333;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
         .frame-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
-        .frame-opt img { width: 100%; border: 2px solid #444; border-radius: 5px; }
+        .frame-opt { transition: 0.2s; padding: 5px; border-radius: 8px; border: 2px solid transparent;}
+        .frame-opt:hover { background: #E8F5E9; }
+        .frame-opt img { width: 100%; border: 1px solid #ddd; border-radius: 5px; background: #eee; }
 
-        /* 儲存提示 Modal */
+        /* 儲存提示 Modal - 綠色邊框 */
         .save-hint-img { 
-            width: 60%; border: 2px solid #4caf50; border-radius: 8px;
-            margin: 15px 0; display: block; box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
+            width: 60%; border: 4px solid #25D366; border-radius: 12px;
+            margin: 15px 0; display: block; box-shadow: 0 5px 20px rgba(0,0,0,0.15);
             touch-action: none; -webkit-user-select: none;
         }
         
@@ -142,15 +153,19 @@
 
     <div class="top-actions">
         <button class="action-btn" onclick="document.getElementById('fileInput').click()">
-            <span>📷</span> 載入照片
+            <span style="font-size: 1.2rem;">📷</span> 載入照片
         </button>
         <button id="btnOpenFrame" class="action-btn" onclick="openFrameModal()" disabled>
-            <span>🖼️</span> 套用相框
+            <span style="font-size: 1.2rem;">🖼️</span> 選擇相框
         </button>
     </div>
 
     <div class="canvas-wrapper" id="canvasWrapper" onclick="handleCanvasClick()">
         <canvas id="mainCanvas"></canvas>
+    </div>
+
+    <div id="canvasHint" class="canvas-hint">
+        💡 提示：單指拖曳可移動相片，雙指開合或使用下方拉桿可縮放。
     </div>
 
     <input type="file" id="fileInput" accept="image/*">
@@ -163,47 +178,45 @@
         </div>
 
         <button class="btn-submit" onclick="simulateSystemUpload()">
-            <span>🖨️</span> 上傳至列印隊列
+            <span>☁️</span> 上傳至列印隊列
         </button>
     </div>
 
     <div id="systemOverlay" class="system-overlay">
-        <div style="font-size: 3rem; margin-bottom: 20px;">☁️</div>
-        <div style="font-size: 1.2rem; font-weight: bold; color: #fff;">正在處理影像...</div>
-        
+        <div style="font-size: 4rem; margin-bottom: 10px;">🖨️</div>
+        <div style="font-size: 1.3rem; font-weight: bold; color: #128C7E;">正在處理影像...</div>
         <div class="progress-container">
             <div id="progressBar" class="progress-bar"></div>
         </div>
-        
-        <div id="logText" class="log-text">Initializing...</div>
+        <div id="logText" class="log-text">Initializing System...</div>
     </div>
 
     <div id="saveModal" class="modal-overlay" style="z-index: 2500;">
         <div class="modal-box" style="display:flex; flex-direction:column; align-items:center;">
-            <h3 style="color:#4caf50; margin: 0 0 10px 0;">✅ 影像處理完成</h3>
+            <h3 style="color:#2E7D32; margin: 0 0 10px 0; font-size: 1.4rem;">✅ 影像處理完成</h3>
             
-            <p style="font-size:0.9rem; color:#aaa; margin:5px 0;">為了驗證您的列印權限，請執行以下步驟：</p>
+            <p style="font-size:0.95rem; color:#666; margin:5px 0;">為了驗證您的列印權限，請執行以下步驟：</p>
 
-            <div style="background:#333; padding:10px; border-radius:8px; width:100%; text-align:left; margin-top:10px; font-size:0.85rem; line-height:1.6;">
-                <span style="color:#4caf50; font-weight:bold;">步驟 1：</span>長按下方圖片，選擇「儲存到相片」。<br>
-                <span style="color:#4caf50; font-weight:bold;">步驟 2：</span>按下按鈕，在 WhatsApp 貼上圖片。
+            <div style="background:#E8F5E9; padding:15px; border-radius:12px; width:100%; text-align:left; margin-top:10px; font-size:0.9rem; line-height:1.6; border: 1px solid #C8E6C9;">
+                <span style="color:#2E7D32; font-weight:bold; font-size: 1rem;">步驟 1：</span><br>長按下方圖片，選擇「儲存到相片」。<br><br>
+                <span style="color:#2E7D32; font-weight:bold; font-size: 1rem;">步驟 2：</span><br>按下按鈕，在 WhatsApp 貼上圖片。
             </div>
 
             <img id="finalImg" class="save-hint-img" src="">
 
-            <button class="btn-submit" onclick="redirectToWhatsapp()" style="width:100%; padding:12px; margin-top:5px; background: #25D366;">
+            <button class="btn-submit" onclick="redirectToWhatsapp()" style="width:100%; padding:14px; margin-top:5px;">
                 開啟 WhatsApp 傳送 ➤
             </button>
             
-            <button style="margin-top:15px; background:none; border:none; text-decoration:underline; color:#666;" onclick="closeModal('saveModal')">取消</button>
+            <button style="margin-top:15px; background:none; border:none; text-decoration:underline; color:#999; cursor: pointer;" onclick="closeModal('saveModal')">取消</button>
         </div>
     </div>
 
     <div id="frameModal" class="modal-overlay">
         <div class="modal-box">
-            <h3 id="frameTitle" style="margin-top:0;">選擇相框</h3>
+            <h3 id="frameTitle" style="margin-top:0; color: #2E7D32;">選擇相框</h3>
             <div id="frameList" class="frame-grid"></div>
-            <button style="margin-top:15px; padding:10px; width:100%; border:none; background:#444; color:#fff; border-radius:8px;" onclick="closeModal('frameModal')">返回</button>
+            <button style="margin-top:20px; padding:12px; width:100%; border:none; background:#eee; color:#666; border-radius:30px; font-weight: bold; cursor: pointer;" onclick="closeModal('frameModal')">返回</button>
         </div>
     </div>
 
@@ -223,6 +236,8 @@
         const ctx = canvas.getContext('2d');
         const canvasWrapper = document.getElementById('canvasWrapper');
         const zoomSlider = document.getElementById('zoomSlider');
+        // 新增：獲取提示元素
+        const canvasHint = document.getElementById('canvasHint');
 
         let orientation = 'V'; 
         let uploadedImg = new Image();
@@ -244,7 +259,7 @@
             H: [ 
                 { name: "無邊框", url: null },
                 { name: "橫向 A", url: "https://cdn.prod.website-files.com/68706ab53a6b0f51d8f998af/694398388d4a3cf9e3e11cc2_a7600849fa09e3efea43694f11422d95_Frame1-2RH-01.png" },
-                { name: "橫向 B", url: "https://cdn.prod.website-files.com/68706ab53a6b0f51d8f998af/6943a48f299debb02cfb3b00_Frame2-2RH.png" }
+                { name: "橫向 B", url: "https://cdn.prod.website-files.com/68706ab53a6b0f51d8f998af/6943a48f7ebcb6d579a7fa95_Frame2-3RH.png" }
             ]
         };
 
@@ -270,6 +285,8 @@
             document.getElementById('btnOpenFrame').disabled = true; 
             zoomSlider.disabled = true; 
             zoomSlider.value = 1;
+            // 切換模式時隱藏提示
+            canvasHint.style.display = 'none';
             
             initCanvas();
         }
@@ -288,8 +305,23 @@
                         canvasWrapper.style.touchAction = "none";
                         document.getElementById('btnOpenFrame').disabled = false;
                         zoomSlider.disabled = false;
-                        fitImage(); 
-                        initCanvas(); 
+                        // 圖片載入成功後，顯示操作提示
+                        canvasHint.style.display = 'block';
+                        
+                        const frameList = FRAME_LIBRARY[orientation];
+                        if (frameList && frameList.length > 1) {
+                            const defaultFrame = frameList[1];
+                            if(defaultFrame.url) {
+                                const fImg = new Image();
+                                fImg.crossOrigin = "anonymous";
+                                fImg.src = defaultFrame.url;
+                                fImg.onload = () => {
+                                    frameImg = fImg;
+                                    fitImage();
+                                    initCanvas();
+                                };
+                            } else { fitImage(); initCanvas(); }
+                        } else { fitImage(); initCanvas(); }
                     }
                 };
                 reader.readAsDataURL(e.target.files[0]);
@@ -337,8 +369,8 @@
                 const finalH = uploadedImg.height * imgState.baseScale * imgState.zoom;
                 ctx.drawImage(uploadedImg, imgState.x, imgState.y, finalW, finalH);
             } else {
-                ctx.fillStyle = '#111'; ctx.fillRect(0,0,canvas.width, canvas.height);
-                ctx.fillStyle = '#333'; ctx.font = 'bold 150px Arial';
+                ctx.fillStyle = '#f5f5f5'; ctx.fillRect(0,0,canvas.width, canvas.height);
+                ctx.fillStyle = '#ddd'; ctx.font = 'bold 150px Arial';
                 ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText('+', canvas.width/2, canvas.height/2);
             }
@@ -366,7 +398,7 @@
             const currentFrames = FRAME_LIBRARY[orientation] || [];
             currentFrames.forEach(f => {
                 const div = document.createElement('div'); div.className = 'frame-opt';
-                div.innerHTML = f.url ? `<img src="${f.url}">` : `<div style="height:50px;display:flex;align-items:center;justify-content:center;background:#333;color:#666;">無</div>`;
+                div.innerHTML = f.url ? `<img src="${f.url}">` : `<div style="height:50px;display:flex;align-items:center;justify-content:center;background:#eee;color:#aaa;border:1px solid #ddd;border-radius:5px;">無</div>`;
                 div.onclick = () => {
                     if (f.url) { const img = new Image(); img.crossOrigin = "anonymous"; img.src = f.url; img.onload = () => { frameImg = img; draw(); closeModal('frameModal'); }; } 
                     else { frameImg = null; draw(); closeModal('frameModal'); }
@@ -377,7 +409,7 @@
         }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // ================= 偽裝雲端上傳系統 (核心部分) =================
+        // ================= 偽裝雲端上傳系統 =================
         function simulateSystemUpload() {
             if (!isLoaded) { alert("請先載入照片！"); return; }
             
@@ -388,31 +420,26 @@
             overlay.style.display = 'flex';
             
             // 模擬進度條動畫
-            let progress = 0;
             const steps = [
                 { p: 10, t: "Connecting to Print Server..." },
-                { p: 30, t: "Optimizing Image Resolution..." },
-                { p: 60, t: "Applying Color Correction..." },
-                { p: 80, t: "Queueing Request (ID: 2R-" + Math.floor(Math.random()*1000) + ")..." },
-                { p: 100, t: "Ready for Verification." }
+                { p: 40, t: "Optimizing Image Resolution..." },
+                { p: 70, t: "Applying Color Profile..." },
+                { p: 90, t: "Queueing Request (ID: 2R-" + Math.floor(Math.random()*1000) + ")..." },
+                { p: 100, t: "Processing Complete." }
             ];
 
             let stepIndex = 0;
-            
             const interval = setInterval(() => {
                 if (stepIndex >= steps.length) {
                     clearInterval(interval);
-                    // 完成後執行真正動作
                     finalizeImage();
                     return;
                 }
-                
                 const step = steps[stepIndex];
                 bar.style.width = step.p + "%";
                 log.innerText = step.t;
                 stepIndex++;
-                
-            }, 600); // 每 0.6 秒跑一個步驟，總共約 3 秒
+            }, 500);
         }
 
         function finalizeImage() {
@@ -422,7 +449,6 @@
                 const url = URL.createObjectURL(blob);
                 document.getElementById('finalImg').src = url;
                 
-                // 關閉系統動畫，顯示最後確認視窗
                 setTimeout(() => {
                     overlay.style.display = 'none';
                     document.getElementById('saveModal').style.display = 'flex';
@@ -432,7 +458,6 @@
         }
 
         function redirectToWhatsapp() {
-            // 專業化的系統訊息
             const msg = encodeURIComponent("【系統列印請求】\nID: " + Math.floor(Math.random()*10000) + "\n\n你好，我已上傳相片至系統列印隊列。\n（請家長記得在此對話附上剛才儲存的相片）");
             window.location.href = `https://wa.me/${TARGET_PHONE}?text=${msg}`;
         }
