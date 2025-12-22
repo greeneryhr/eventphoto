@@ -85,14 +85,7 @@
         }
         .btn-whatsapp:active { transform: scale(0.98); }
 
-        /* 狀態提示與 Modal */
-        .status-toast {
-            display: none; position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9); color: white; padding: 25px; border-radius: 12px;
-            z-index: 2000; text-align: center; font-weight: bold; width: 85%; max-width: 320px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-family: monospace;
-        }
-        
+        /* Modal */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px;
@@ -100,24 +93,33 @@
         .modal-box {
             background: white; padding: 20px; border-radius: 16px; width: 100%; max-width: 360px;
             max-height: 90vh; overflow-y: auto; text-align: center;
-        }
-        
-        /* 預覽與長按區 */
-        .preview-box {
             display: flex; flex-direction: column; align-items: center;
         }
+        
+        .frame-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+        .frame-opt img { width: 100%; border: 2px solid #eee; border-radius: 5px; }
+
+        /* 預覽與長按區 */
         .save-hint-img { 
             width: 100%; max-width: 220px; border: 3px solid #25D366; border-radius: 8px;
             margin: 10px 0; display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            /* 重要：禁止在預覽圖上發生觸控捲動，方便長按 */
+            touch-action: none; 
+            -webkit-user-select: none; /* iOS Safari 特性，有時需避免選取 */
         }
         .step-bubble {
             background: #e8f5e9; color: #075e54; padding: 8px 15px; border-radius: 20px;
             font-size: 0.9rem; margin-bottom: 5px; font-weight: bold; display: inline-block;
         }
-
-        .frame-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
-        .frame-opt img { width: 100%; border: 2px solid #eee; border-radius: 5px; }
         
+        /* 系統處理中 Toast */
+        .status-toast {
+            display: none; position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9); color: white; padding: 25px; border-radius: 12px;
+            z-index: 2000; text-align: center; font-weight: bold; width: 85%; max-width: 320px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-family: monospace;
+        }
+
         #fileInput { display: none; }
     </style>
 </head>
@@ -177,14 +179,14 @@
             
             <div style="text-align:left; width:100%; margin-bottom:10px;">
                 <div class="step-bubble">步驟 1</div>
-                <span style="font-size:0.9rem;">長按下方圖片，選擇<strong>「儲存到相片」</strong>(Save to Photos)</span>
+                <span style="font-size:0.9rem;">長按下方圖片，選擇<strong>「儲存到相片」</strong></span>
             </div>
 
             <img id="finalImg" class="save-hint-img" src="">
 
             <div style="text-align:left; width:100%; margin-top:15px; margin-bottom:5px;">
                 <div class="step-bubble">步驟 2</div>
-                <span style="font-size:0.9rem;">按下按鈕，在 WhatsApp 選擇該照片</span>
+                <span style="font-size:0.9rem;">按下按鈕，在 WhatsApp 選取剛才的相片</span>
             </div>
 
             <button class="btn-whatsapp" onclick="redirectToWhatsapp()" style="width:100%; font-size:1rem; padding:12px; margin-top:10px;">
@@ -333,6 +335,7 @@
             if (frameImg) { ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height); }
         }
 
+        // 觸控與縮放
         function getDist(t1, t2) { return Math.sqrt(Math.pow(t1.clientX - t2.clientX, 2) + Math.pow(t1.clientY - t2.clientY, 2)); }
         function getPos(e) { const rect = canvas.getBoundingClientRect(); const scaleX = canvas.width / rect.width; let cx, cy; if(e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; } else { cx = e.clientX; cy = e.clientY; } return { x: (cx - rect.left) * scaleX, clientX: cx, clientY: cy }; }
         canvas.addEventListener('mousedown', e => { if(!isLoaded) return; isDragging=true; const p=getPos(e); dragStart={x:p.clientX, y:p.clientY, originX:imgState.x, originY:imgState.y}; });
@@ -365,31 +368,28 @@
         }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // ================= Process Flow =================
+        // ============================================
+        // 核心修改：移除自動下載，改為彈出 Modal 供長按
+        // ============================================
         function processImage() {
             if (!isLoaded) { alert("請先上傳照片！"); return; }
             
             const toast = document.getElementById('statusToast');
-            const toastText = document.getElementById('toastText');
             toast.style.display = 'block';
-            toastText.innerHTML = "正在生成圖片...";
 
-            // 1. 生成圖片 Blob
+            // 1. 生成圖片
             canvas.toBlob(function(blob) {
                 const url = URL.createObjectURL(blob);
                 
-                // 2. 顯示圖片在 Modal 中
+                // 2. 設定 Modal 圖片
                 document.getElementById('finalImg').src = url;
                 
-                // 3. 關閉處理中提示，開啟 Save Modal
+                // 3. 顯示 Modal，隱藏 Loading
                 toast.style.display = 'none';
                 document.getElementById('saveModal').style.display = 'flex';
                 
-                // (選項) 自動嘗試下載一份 (給 Android/Desktop 用戶方便)
-                const a = document.createElement('a');
-                a.href = url; a.download = `2R_Print_${new Date().getTime()}.jpg`;
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
-
+                // 注意：這裡完全移除了自動下載 (a.click())
+                
             }, 'image/jpeg', 0.95);
         }
 
@@ -402,3 +402,4 @@
     </script>
 </body>
 </html>
+
