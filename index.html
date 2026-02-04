@@ -218,7 +218,7 @@
 
     <script>
         // ================= 設定區 =================
-        const TARGET_PHONE = "85212345678"; 
+        const TARGET_PHONE = "85269131302"; 
         // =========================================
 
         const SUPER_DPI = 1200; 
@@ -451,7 +451,7 @@
         }
 
         function redirectToWhatsapp() {
-            const msg = encodeURIComponent("【系統列印請求】\nID: " + Math.floor(Math.random()*10000) + "\n\n你好，我已上傳相片至系統列印隊列。\n（請家長記得在此對話附上剛才儲存的相片）");
+            const msg = encodeURIComponent("【系統列印請求】\nID: " + Math.floor(Math.random()*10000) + "\n\n你好，我已上傳相片至系統列印隊列。\n（請家長記得在此對話以「文件」附上剛才儲存的相片。）");
             window.location.href = `https://wa.me/${TARGET_PHONE}?text=${msg}`;
         }
 
@@ -459,3 +459,4 @@
     </script>
 </body>
 </html>
+
