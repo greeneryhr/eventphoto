@@ -169,7 +169,7 @@
     <div class="fixed-footer">
         <div class="zoom-container">
             <span class="zoom-icon">➖</span>
-            <input type="range" id="zoomSlider" min="1" max="3" step="0.05" value="1" disabled>
+            <input type="range" id="zoomSlider" min="0.2" max="3" step="0.01" value="1" disabled>
             <span class="zoom-icon">➕</span>
         </div>
 
@@ -217,11 +217,9 @@
     </div>
 
     <script>
-        // ================= 設定區 =================
         const TARGET_PHONE = "85269131302"; 
-        // =========================================
 
-        const SUPER_DPI = 1200; 
+        const SUPER_DPI = 600; 
         const INCH_TO_MM = 25.4;
         const R2_W_MM = 63.5;
         const R2_H_MM = 88.9;
@@ -328,6 +326,7 @@
             const cH = canvas.height;
             const scaleX = cW / uploadedImg.width;
             const scaleY = cH / uploadedImg.height;
+            // 初始比例設為剛好填滿
             imgState.baseScale = Math.max(scaleX, scaleY);
             imgState.zoom = 1;
             zoomSlider.value = 1;
@@ -341,20 +340,32 @@
             const currentH = uploadedImg.height * imgState.baseScale * imgState.zoom;
             imgState.x = (cW - currentW) / 2;
             imgState.y = (cH - currentH) / 2;
-            clampPosition();
         }
 
+        // 修改：放寬限制邏輯，容許相片縮小並居中
         function clampPosition() {
             const cW = canvas.width;
             const cH = canvas.height;
             const currentW = uploadedImg.width * imgState.baseScale * imgState.zoom;
             const currentH = uploadedImg.height * imgState.baseScale * imgState.zoom;
-            const minX = cW - currentW;
-            const minY = cH - currentH;
-            if (imgState.x > 0) imgState.x = 0;
-            if (imgState.y > 0) imgState.y = 0;
-            if (imgState.x < minX) imgState.x = minX;
-            if (imgState.y < minY) imgState.y = minY;
+
+            // 寬度限制
+            if (currentW <= cW) {
+                imgState.x = (cW - currentW) / 2; // 如果縮得比畫布小，固定居中
+            } else {
+                const minX = cW - currentW;
+                if (imgState.x > 0) imgState.x = 0;
+                if (imgState.x < minX) imgState.x = minX;
+            }
+
+            // 高度限制
+            if (currentH <= cH) {
+                imgState.y = (cH - currentH) / 2; // 如果縮得比畫布小，固定居中
+            } else {
+                const minY = cH - currentH;
+                if (imgState.y > 0) imgState.y = 0;
+                if (imgState.y < minY) imgState.y = minY;
+            }
         }
 
         function draw() {
@@ -374,14 +385,66 @@
 
         function getDist(t1, t2) { return Math.sqrt(Math.pow(t1.clientX - t2.clientX, 2) + Math.pow(t1.clientY - t2.clientY, 2)); }
         function getPos(e) { const rect = canvas.getBoundingClientRect(); const scaleX = canvas.width / rect.width; let cx, cy; if(e.touches) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; } else { cx = e.clientX; cy = e.clientY; } return { x: (cx - rect.left) * scaleX, clientX: cx, clientY: cy }; }
+        
         canvas.addEventListener('mousedown', e => { if(!isLoaded) return; isDragging=true; const p=getPos(e); dragStart={x:p.clientX, y:p.clientY, originX:imgState.x, originY:imgState.y}; });
         window.addEventListener('mousemove', e => { if(!isDragging) return; e.preventDefault(); const rect=canvas.getBoundingClientRect(); const scaleC=canvas.width/rect.width; const dx=(e.clientX-dragStart.x)*scaleC; const dy=(e.clientY-dragStart.y)*scaleC; imgState.x=dragStart.originX+dx; imgState.y=dragStart.originY+dy; clampPosition(); draw(); });
         window.addEventListener('mouseup', () => isDragging=false);
-        canvas.addEventListener('touchstart', e => { if(!isLoaded) return; if (e.touches.length === 2) { isDragging = false; initialPinchDist = getDist(e.touches[0], e.touches[1]); initialZoom = imgState.zoom; } else if (e.touches.length === 1) { isDragging = true; const p = getPos(e); dragStart = {x:p.clientX, y:p.clientY, originX:imgState.x, originY:imgState.y}; } }, {passive: false});
-        canvas.addEventListener('touchmove', e => { if(!isLoaded) return; e.preventDefault(); if (e.touches.length === 2 && initialPinchDist > 0) { const currentDist = getDist(e.touches[0], e.touches[1]); const scale = currentDist / initialPinchDist; updateZoom(initialZoom * scale); } else if (isDragging && e.touches.length === 1) { const rect = canvas.getBoundingClientRect(); const scaleC = canvas.width / rect.width; const dx = (e.touches[0].clientX - dragStart.x) * scaleC; const dy = (e.touches[0].clientY - dragStart.y) * scaleC; imgState.x = dragStart.originX + dx; imgState.y = dragStart.originY + dy; clampPosition(); draw(); } }, {passive: false});
+        
+        canvas.addEventListener('touchstart', e => { 
+            if(!isLoaded) return; 
+            if (e.touches.length === 2) { 
+                isDragging = false; 
+                initialPinchDist = getDist(e.touches[0], e.touches[1]); 
+                initialZoom = imgState.zoom; 
+            } else if (e.touches.length === 1) { 
+                isDragging = true; 
+                const p = getPos(e); 
+                dragStart = {x:p.clientX, y:p.clientY, originX:imgState.x, originY:imgState.y}; 
+            } 
+        }, {passive: false});
+
+        canvas.addEventListener('touchmove', e => { 
+            if(!isLoaded) return; 
+            e.preventDefault(); 
+            if (e.touches.length === 2 && initialPinchDist > 0) { 
+                const currentDist = getDist(e.touches[0], e.touches[1]); 
+                const scale = currentDist / initialPinchDist; 
+                updateZoom(initialZoom * scale); 
+            } else if (isDragging && e.touches.length === 1) { 
+                const rect = canvas.getBoundingClientRect(); 
+                const scaleC = canvas.width / rect.width; 
+                const dx = (e.touches[0].clientX - dragStart.x) * scaleC; 
+                const dy = (e.touches[0].clientY - dragStart.y) * scaleC; 
+                imgState.x = dragStart.originX + dx; 
+                imgState.y = dragStart.originY + dy; 
+                clampPosition(); 
+                draw(); 
+            } 
+        }, {passive: false});
+
         canvas.addEventListener('touchend', () => { isDragging = false; initialPinchDist = 0; });
         zoomSlider.addEventListener('input', function(e) { if(!isLoaded) return; updateZoom(parseFloat(this.value)); });
-        function updateZoom(newZoom) { if(newZoom < 1) newZoom = 1; if(newZoom > 3) newZoom = 3; const oldZoom = imgState.zoom; imgState.zoom = newZoom; zoomSlider.value = newZoom; const cW = canvas.width; const cH = canvas.height; const scaleChange = imgState.zoom / oldZoom; imgState.x = cW/2 - (cW/2 - imgState.x) * scaleChange; imgState.y = cH/2 - (cH/2 - imgState.y) * scaleChange; clampPosition(); draw(); }
+
+        // 修改：updateZoom 不限制最小為 1
+        function updateZoom(newZoom) { 
+            if(newZoom < 0.2) newZoom = 0.2; // 最小縮到 20%
+            if(newZoom > 3) newZoom = 3; 
+            
+            const oldZoom = imgState.zoom; 
+            imgState.zoom = newZoom; 
+            zoomSlider.value = newZoom; 
+            
+            const cW = canvas.width; 
+            const cH = canvas.height; 
+            const scaleChange = imgState.zoom / oldZoom; 
+            
+            // 保持縮放中心
+            imgState.x = cW/2 - (cW/2 - imgState.x) * scaleChange; 
+            imgState.y = cH/2 - (cH/2 - imgState.y) * scaleChange; 
+            
+            clampPosition(); 
+            draw(); 
+        }
 
         function openFrameModal() {
             if(!isLoaded) return;
@@ -404,7 +467,6 @@
         }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // ================= 偽裝雲端上傳系統 =================
         function simulateSystemUpload() {
             if (!isLoaded) { alert("請先載入照片！"); return; }
             
@@ -414,7 +476,6 @@
             
             overlay.style.display = 'flex';
             
-            // 模擬進度條動畫
             const steps = [
                 { p: 10, t: "Connecting to Print Server..." },
                 { p: 40, t: "Optimizing Image Resolution..." },
@@ -461,6 +522,7 @@
     </script>
 </body>
 </html>
+
 
 
 
